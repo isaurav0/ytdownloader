@@ -1,39 +1,48 @@
+#!/usr/bin/python
 import sys
 from pytube import YouTube as youtube
 import subprocess
 
-url = sys.argv[1]
+# python downloader.py url audio/video
+# python downloader.py -f file.txt audio/video
 
-if sys.argv[-1]==url:
+try:
+    location = sys.argv[1]
+except:
+    print("Syntax Error. ")
+    print("Usage: python downloader.py url audio/video")
+    print("Usage: python downloader.py -f file.txt audio/video")
+    exit()
+
+if location=='-file':
+    file = open(sys.argv[2], "r")
+    urls = []
+    for url in file:
+        urls.append(url)
+else:
+    urls = [location]
+
+if sys.argv[-1]=="audio":
+    media_type = "audio"
+else:
     media_type = "video"
-else:
-    media_type = sys.argv[-1]
 
-#print("url= ", url)
-#print("format = ", media_type)
+for url in urls:
+    print("********* Parsing video ***********")
+    # print("Parsing video ;)  ...")
+    yt = youtube(url)
+    print(yt.title)
+    if media_type == 'video':        
+        stream = yt.streams.first()
+    else:
+        stream = yt.streams.get_audio_only()
 
-print("Parsing video ;)  ...")
-yt = youtube(url)
-print(yt.title)
-if media_type == 'video':
-#    stream = yt.streams.filter(res='1080p')[-1]
-#    if not stream:
-#        stream = yt.streams.filter(res='720p')[-1]
-#        if not stream:
-#            stream = yt.streams.first()
+    print("Downloading ...")
+    stream.download()
 
-    
-    stream = yt.streams.first()
-else:
-    stream = yt.streams.get_audio_only()
-
-print("Downloading ...")
-stream.download()
-
-if media_type != 'video':
-    print("Converting ...")
-    filename = stream.default_filename.split(".mp")[0]+'.mp3'
-    subprocess.call(['ffmpeg','-i',stream.default_filename,filename])
-    subprocess.call(['rm',stream.default_filename])
-
-print("*********Completed***********")
+    if media_type != 'video':
+        print("Converting ...")
+        filename = stream.default_filename.split(".mp")[0]+'.mp3'
+        subprocess.call(['ffmpeg','-i',stream.default_filename,filename])
+        subprocess.call(['rm',stream.default_filename])
+    print("*********Completed***********")
