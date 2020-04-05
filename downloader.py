@@ -38,11 +38,11 @@ for url in urls:
         stream = yt.streams.get_audio_only()
 
     print("Downloading ...")
-    stream.download()
+    stream.download('youtube')
 
     if media_type != 'video':
         print("Converting ...")
         filename = stream.default_filename.split(".mp")[0]+'.mp3'
-        subprocess.call(['ffmpeg','-i',stream.default_filename,filename])
-        subprocess.call(['rm',stream.default_filename])
+        subprocess.call(['ffmpeg','-i','youtube/'+stream.default_filename,'youtube/'+filename])
+        subprocess.call(['rm','youtube/'+stream.default_filename])
     print("*********Completed***********")

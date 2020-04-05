@@ -37,4 +37,9 @@ To download audio:
 ``` 
 python downloader.py https://www.youtube.com/watch?v=fJ9rUzIMcZQ audio
 ```
+
+To download from a file containing url lists:
+``` 
+python downloader.py -f file.txt audio/video
+```
   
