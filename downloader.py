@@ -11,14 +11,15 @@ try:
 except:
     print("Syntax Error. ")
     print("Usage: python downloader.py url audio/video")
-    print("Usage: python downloader.py -f file.txt audio/video")
+    print("Usage: python downloader.py -file filename.txt audio/video")
     exit()
 
 if location=='-file':
     file = open(sys.argv[2], "r")
     urls = []
-    for url in file:
-        urls.append(url)
+    for line in file:
+    	url = "https" + line.split("https")[-1]
+    	urls.append(url)
 else:
     urls = [location]
 
@@ -27,12 +28,12 @@ if sys.argv[-1]=="audio":
 else:
     media_type = "video"
 
-for url in urls:
+for index, url in enumerate(urls, 1):
     print("********* Parsing video ***********")
-    # print("Parsing video ;)  ...")
+    print(index, " ", url)
     yt = youtube(url)
     print(yt.title)
-    if media_type == 'video':        
+    if media_type == 'video':
         stream = yt.streams.first()
     else:
         stream = yt.streams.get_audio_only()
@@ -40,9 +41,11 @@ for url in urls:
     print("Downloading ...")
     stream.download('youtube')
 
-    if media_type != 'video':
+    if media_type != 'video' and location !='-file':
         print("Converting ...")
         filename = stream.default_filename.split(".mp")[0]+'.mp3'
         subprocess.call(['ffmpeg','-i','youtube/'+stream.default_filename,'youtube/'+filename])
         subprocess.call(['rm','youtube/'+stream.default_filename])
+
+
     print("*********Completed***********")
