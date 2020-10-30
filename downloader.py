@@ -5,6 +5,17 @@ from pytube import YouTube, Playlist
 import subprocess
 import traceback
 
+help_message = '''
+        Usage: Downloads video from youtube
+
+        Syntax:
+
+        $ python downloader.py -url url [audio/video]
+        $ python downloader.py -file filename.txt [audio/video]
+        $ python downloader.py -playlist -url url [audio/video]
+        $ python downloader.py -playlist -file filename.txt [audio/video]
+'''
+
 
 class Downloader():
 
@@ -17,22 +28,23 @@ class Downloader():
         self.out_folder =  out_folder
 
     def __download__(self, url):
-        yt = YouTube(url)
-        stream = yt.streams.get_audio_only() if self.output_type == 'audio' else yt.streams.first()
-        stream.download(self.out_folder)
-        print(f'Downloading {yt.title}')
-        if self.output_type == 'audio':
-            self.__convert_to_audio__(stream.default_filename)
-        print('---------completed--------')
+        print('--------- Parsing video ----------')
+        try:
+            yt = YouTube(url)
+            stream = yt.streams.get_audio_only() if self.output_type == 'audio' else yt.streams.first()
+            print(f'Downloading {yt.title} ....')
+            stream.download(self.out_folder)        
+            if self.output_type == 'audio':
+                self.__convert_to_audio__(stream.default_filename)
+            print("*********Completed***********")
+        except:
+            print('------ Aborted --------')
 
     def __download__playlist(self, playlist_url):
         playlist = Playlist(playlist_url)
         playlist._video_regex = re.compile(r"\"url\":\"(/watch\?v=[\w-]*)")
         for url in playlist.video_urls:
-        	try:
-            	self.__download__(url)
-            except:
-            	print(f"--skipping {url}------")
+            self.__download__(url)
 
 
     def __convert_to_audio__(self, filename):
@@ -54,17 +66,10 @@ class Downloader():
 
         if self.is_playlist:
             for url in urls:
-            	try:
-                	self.__download__playlist(url)
-                except:
-                	pass
+                self.__download__playlist(url)
         else:
-            print(urls)
             for url in urls:
-            	try:
-                	self.__download__(url)
-                except:
-                	pass
+                self.__download__(url)
 
 
 def get_flag_value(flag):
@@ -83,12 +88,16 @@ if __name__ == '__main__':
         'output_type': 'audio',
     }
     try:
+        if 'help' in sys.argv:
+            print(help_message)
+            exit()
         config['url'] = '' if not '-url' in sys.argv else get_flag_value('url')
         config['has_file'] = '-file' in sys.argv
         config['file_name'] = '' if not config['has_file'] else get_flag_value('file')
         config['output_type'] = 'audio' if 'audio' in sys.argv else 'video'
         config['is_playlist'] = '-playlist' in sys.argv
         config['out_folder'] = 'youtube' if not '-out' in sys.argv else get_flag_value('file')
+
         downloader = Downloader(config['url'],
                               config['file_name'],
                               config['is_playlist'],
@@ -96,55 +105,7 @@ if __name__ == '__main__':
 
         downloader.download()
     except Exception:
-        traceback.print_exc()
-        help_message = '''
-        Syntax Error.
-
-        Usage: 
-        Normal Download
-        $ python downloader.py -url url audio/video
-        $ python downloader.py -file filename.txt audio/video
-        $ python downloader.py -playlist -url url audio/video
-        $ python downloader.py -playlist -file filename.txt audio/video
-        '''
+        traceback.print_exc()        
         print(help_message)
         exit()
 
-
-
-
-
-# # if location=='-file':
-# #     file = open(sys.argv[2], "r")
-# #     urls = []
-# #     for line in file:
-# #         url = "https" + line.split("https")[-1]
-# #         urls.append(url)
-# # else:
-# #     urls = [location]
-
-# # if sys.argv[-1]=="audio":
-# #     media_type = "audio"
-# # else:
-# #     media_type = "video"
-
-# # for index, url in enumerate(urls, 1):
-# #     print("********* Parsing video ***********")
-# #     print(index, " ", url)
-# #     yt = Youtube(url)
-# #     print(yt.title)
-# #     if media_type == 'video':
-# #         stream = yt.streams.first()
-# #     else:
-# #         stream = yt.streams.get_audio_only()
-
-# #     print("Downloading ...")
-# #     stream.download('youtube')
-
-#     if media_type != 'video' and location !='-file':
-#         print("Converting ...")
-#         filename = stream.default_filename.split(".mp")[0]+'.mp3'
-#         subprocess.call(['ffmpeg','-i','youtube/'+stream.default_filename,'youtube/'+filename])
-#         subprocess.call(['rm','youtube/'+stream.default_filename])
-
-# # #     print("*********Completed***********")
